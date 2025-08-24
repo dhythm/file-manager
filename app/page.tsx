@@ -96,6 +96,117 @@ const getFileIcon = (type: string) => {
   return File
 }
 
+import JSZip from "jszip"
+
+const generateMockFileContent = (file: FileItem): Blob => {
+  if (file.type.startsWith("image/")) {
+    const canvas = document.createElement("canvas")
+    canvas.width = 200
+    canvas.height = 200
+    const ctx = canvas.getContext("2d")
+    if (ctx) {
+      ctx.fillStyle = "#f0f0f0"
+      ctx.fillRect(0, 0, 200, 200)
+      ctx.fillStyle = "#333"
+      ctx.font = "16px Arial"
+      ctx.textAlign = "center"
+      ctx.fillText(file.name, 100, 100)
+    }
+    return new Promise<Blob>((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob || new Blob())
+      }, file.type)
+    }) as unknown as Blob
+  }
+
+  if (file.type === "text/plain") {
+    return new Blob([`Sample content for ${file.name}\n\nThis is a mock file generated for demonstration purposes.\nOriginal size: ${file.size} bytes\nLast modified: ${file.lastModified.toISOString()}`], { type: "text/plain" })
+  }
+
+  if (file.type === "application/pdf") {
+    const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >> /MediaBox [0 0 612 792] /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 44 >>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(${file.name}) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f
+0000000009 00000 n
+0000000058 00000 n
+0000000115 00000 n
+0000000274 00000 n
+trailer
+<< /Size 5 /Root 1 0 R >>
+startxref
+365
+%%EOF`
+    return new Blob([pdfContent], { type: "application/pdf" })
+  }
+
+  return new Blob([`File: ${file.name}\nSize: ${file.size} bytes\nType: ${file.type}\nLast Modified: ${file.lastModified.toISOString()}\n\nThis is a mock file content.`], { type: "text/plain" })
+}
+
+const handleZipDownload = async (files: FileItem[]): Promise<void> => {
+  try {
+    const selectedFiles = files.filter((file) => file.selected)
+    
+    if (selectedFiles.length === 0) {
+      alert("ダウンロードするファイルを選択してください。")
+      return
+    }
+
+    const zip = new JSZip()
+
+    for (const file of selectedFiles) {
+      const content = generateMockFileContent(file)
+      
+      if (content instanceof Promise) {
+        const blob = await content
+        zip.file(file.name, blob)
+      } else {
+        zip.file(file.name, content)
+      }
+    }
+
+    const blob = await zip.generateAsync({ type: "blob" })
+
+    const timestamp = new Date()
+      .toISOString()
+      .replace(/[:\-T]/g, "")
+      .slice(0, 14)
+    const fileName = `files_${timestamp}.zip`
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    setTimeout(() => URL.revokeObjectURL(url), 100)
+  } catch (error) {
+    console.error("ZIP生成エラー:", error)
+    alert("ZIPファイルの生成に失敗しました。")
+  }
+}
+
 export default function FileManager() {
   const [files, setFiles] = useState<FileItem[]>(sampleFiles)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -219,6 +330,7 @@ export default function FileManager() {
               variant="outline"
               disabled={selectedFiles.length === 0}
               className="disabled:opacity-50 bg-transparent"
+              onClick={() => handleZipDownload(files)}
             >
               <Download className="mr-2 h-4 w-4" />
               ZIPダウンロード
