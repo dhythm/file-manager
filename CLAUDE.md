@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 日時フォーマットは yyyy/mm/dd hh:mm:ss（JST）
 
 ### 注意事項
-- テストフレームワークは未導入
-- リンター/フォーマッターは Next.js デフォルトのみ
+- テストフレームワークは Vitest を採用
+- Biomeの設定に従う
 - ファイルアップロードは File API と FileReader を使用
 - ZIP生成は JSzip ライブラリを使用
