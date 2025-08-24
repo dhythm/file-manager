@@ -115,10 +115,34 @@ Tailwind CSS、shadcn/ui、Lucide Iconsを使用して、実際に動作する�
 v0.dev からモックをダウンロードし、必要なファイルを作成する。
 
 ```sh
-git init
-
 touch README.md
-
 pnpm install
+
+git init
+git add -A
+git commit -m "first commit"
+
+git remote add origin git@github.com:dhythm/file-manager.git
+git branch -M main
+git push -u origin main
+```
+
+#### 2. Serena の導入
+
+Serena はコーディングエージェントと、プロジェクトコードの仲介者として働く MCP サーバ。  
+参考: https://note.com/kyutaro15/n/n61a8825fe303
+
+1. MCP の追加:
+
+```sh
+claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant --project $(pwd)
+```
+
+2. Serena のセットアップ:
+
+Claude を起動して、以下のコマンドを実行。
+
+```sh
+/mcp__serena__initial_instructions
 ```
 
