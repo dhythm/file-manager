@@ -18,6 +18,20 @@
       "mcp__serena__think_about_whether_you_are_done"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "acceptEdits"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm lint:changed:fix"
+          }
+        ]
+      }
+    ]
   }
 }

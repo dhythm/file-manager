@@ -7,6 +7,10 @@
     "dev": "next dev",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
+    "lint:staged": "biome check --staged --no-errors-on-unmatched",
+    "lint:staged:fix": "biome check --write --staged --no-errors-on-unmatched",
+    "lint:changed": "biome check --changed --no-errors-on-unmatched",
+    "lint:changed:fix": "biome check --write --changed --no-errors-on-unmatched",
     "format": "biome format --write .",
     "format:check": "biome ci .",
     "start": "next start"
