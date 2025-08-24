@@ -146,3 +146,9 @@ Claude を起動して、以下のコマンドを実行。
 /mcp__serena__initial_instructions
 ```
 
+### アプリケーションの実行
+
+```sh
+pnpm install
+pnpm run dev
+```
