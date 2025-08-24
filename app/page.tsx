@@ -89,6 +89,17 @@ const formatFileSize = (bytes: number): string => {
   return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
 }
 
+const formatDateTime = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  
+  return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+}
+
 const getFileIcon = (type: string) => {
   if (type.startsWith("image/")) return FileImage
   if (type === "application/pdf") return FileText
@@ -331,7 +342,7 @@ export default function FileManager() {
           <div className="flex items-center gap-3">
             <Button onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
-              ファイルを選択
+              ファイルをアップロード
             </Button>
             <Button
               variant="outline"
@@ -383,10 +394,11 @@ export default function FileManager() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <Checkbox
+                id="select-all"
                 checked={files.length > 0 && files.every((file) => file.selected)}
                 onCheckedChange={handleSelectAll}
               />
-              <Label className="text-sm">全て選択</Label>
+              <Label htmlFor="select-all" className="text-sm cursor-pointer">全て選択</Label>
             </div>
             <Button
               variant="outline"
@@ -404,7 +416,7 @@ export default function FileManager() {
               disabled={selectedFiles.length === 0}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              選択を削除
+              ファイルを削除
             </Button>
           </div>
         </div>
@@ -436,7 +448,7 @@ export default function FileManager() {
             >
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg text-muted-foreground">ここにファイルをドラッグ&ドロップ</p>
-              <p className="text-sm text-muted-foreground mt-2">または「ファイルを選択」ボタンをクリック</p>
+              <p className="text-sm text-muted-foreground mt-2">または「ファイルをアップロード」ボタンをクリック</p>
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -532,7 +544,7 @@ export default function FileManager() {
                       {formatFileSize(file.size)}
                     </div>
                     <div className="col-span-3 flex items-center text-sm text-muted-foreground">
-                      {file.lastModified.toLocaleDateString("ja-JP")}
+                      {formatDateTime(file.lastModified)}
                     </div>
                     <div className="col-span-1 flex items-center">
                       {sortBy === "manual" && <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />}
@@ -649,7 +661,7 @@ export default function FileManager() {
                   </div>
                   <div>
                     <Label className="text-sm text-muted-foreground">更新日時</Label>
-                    <p className="text-sm font-medium">{selectedFiles[0].lastModified.toLocaleString("ja-JP")}</p>
+                    <p className="text-sm font-medium">{formatDateTime(selectedFiles[0].lastModified)}</p>
                   </div>
                 </div>
               ) : (
