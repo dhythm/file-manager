@@ -1,32 +1,37 @@
-"use client"
+'use client'
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
 import {
-  Upload,
+  ArrowDown,
+  ArrowUp,
   Download,
+  Edit3,
+  File,
+  FileImage,
+  FileText,
   Grid3X3,
+  GripVertical,
   List,
   Trash2,
-  Edit3,
-  FileText,
-  FileImage,
-  File,
+  Upload,
   X,
-  GripVertical,
-  ArrowUp,
-  ArrowDown,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+} from 'lucide-react'
+import type React from 'react'
+import { useRef, useState } from 'react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 
 interface FileItem {
   id: string
@@ -40,55 +45,55 @@ interface FileItem {
 
 const sampleFiles: FileItem[] = [
   {
-    id: "1",
-    name: "photo_001.jpg",
+    id: '1',
+    name: 'photo_001.jpg',
     size: 2048576,
-    type: "image/jpeg",
-    lastModified: new Date("2024-01-15"),
+    type: 'image/jpeg',
+    lastModified: new Date('2024-01-15'),
     selected: false,
-    preview: "/beautiful-landscape.png",
+    preview: '/beautiful-landscape.png',
   },
   {
-    id: "2",
-    name: "image_002.png",
+    id: '2',
+    name: 'image_002.png',
     size: 1536000,
-    type: "image/png",
-    lastModified: new Date("2024-01-14"),
+    type: 'image/png',
+    lastModified: new Date('2024-01-14'),
     selected: false,
-    preview: "/modern-architecture-photo.png",
+    preview: '/modern-architecture-photo.png',
   },
   {
-    id: "3",
-    name: "document.pdf",
+    id: '3',
+    name: 'document.pdf',
     size: 512000,
-    type: "application/pdf",
-    lastModified: new Date("2024-01-13"),
+    type: 'application/pdf',
+    lastModified: new Date('2024-01-13'),
     selected: false,
   },
   {
-    id: "4",
-    name: "readme.txt",
+    id: '4',
+    name: 'readme.txt',
     size: 2048,
-    type: "text/plain",
-    lastModified: new Date("2024-01-12"),
+    type: 'text/plain',
+    lastModified: new Date('2024-01-12'),
     selected: false,
   },
   {
-    id: "5",
-    name: "presentation.pptx",
+    id: '5',
+    name: 'presentation.pptx',
     size: 4096000,
-    type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    lastModified: new Date("2024-01-11"),
+    type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    lastModified: new Date('2024-01-11'),
     selected: false,
   },
 ]
 
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return "0 B"
+  if (bytes === 0) return '0 B'
   const k = 1024
-  const sizes = ["B", "KB", "MB", "GB"]
+  const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
+  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`
 }
 
 const formatDateTime = (date: Date): string => {
@@ -98,21 +103,21 @@ const formatDateTime = (date: Date): string => {
   const hours = String(date.getHours()).padStart(2, '0')
   const minutes = String(date.getMinutes()).padStart(2, '0')
   const seconds = String(date.getSeconds()).padStart(2, '0')
-  
+
   return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
 }
 
 const getFileIcon = (type: string) => {
-  if (type.startsWith("image/")) return FileImage
-  if (type === "application/pdf") return FileText
-  if (type.startsWith("text/")) return FileText
+  if (type.startsWith('image/')) return FileImage
+  if (type === 'application/pdf') return FileText
+  if (type.startsWith('text/')) return FileText
   return File
 }
 
-import JSZip from "jszip"
+import JSZip from 'jszip'
 
 const generateMockFileContent = async (file: FileItem): Promise<Blob> => {
-  if (file.type.startsWith("image/")) {
+  if (file.type.startsWith('image/')) {
     // 実際の画像ファイルが存在する場合は、それを使用
     if (file.preview) {
       try {
@@ -120,22 +125,20 @@ const generateMockFileContent = async (file: FileItem): Promise<Blob> => {
         if (response.ok) {
           return await response.blob()
         }
-      } catch (error) {
-        console.warn(`Failed to fetch preview image for ${file.name}, using fallback`, error)
-      }
+      } catch (_error) {}
     }
-    
+
     // フォールバック: Canvas で簡易画像を生成
-    const canvas = document.createElement("canvas")
+    const canvas = document.createElement('canvas')
     canvas.width = 200
     canvas.height = 200
-    const ctx = canvas.getContext("2d")
+    const ctx = canvas.getContext('2d')
     if (ctx) {
-      ctx.fillStyle = "#f0f0f0"
+      ctx.fillStyle = '#f0f0f0'
       ctx.fillRect(0, 0, 200, 200)
-      ctx.fillStyle = "#333"
-      ctx.font = "16px Arial"
-      ctx.textAlign = "center"
+      ctx.fillStyle = '#333'
+      ctx.font = '16px Arial'
+      ctx.textAlign = 'center'
       ctx.fillText(file.name, 100, 100)
     }
     return new Promise<Blob>((resolve) => {
@@ -145,11 +148,16 @@ const generateMockFileContent = async (file: FileItem): Promise<Blob> => {
     })
   }
 
-  if (file.type === "text/plain") {
-    return new Blob([`Sample content for ${file.name}\n\nThis is a mock file generated for demonstration purposes.\nOriginal size: ${file.size} bytes\nLast modified: ${file.lastModified.toISOString()}`], { type: "text/plain" })
+  if (file.type === 'text/plain') {
+    return new Blob(
+      [
+        `Sample content for ${file.name}\n\nThis is a mock file generated for demonstration purposes.\nOriginal size: ${file.size} bytes\nLast modified: ${file.lastModified.toISOString()}`,
+      ],
+      { type: 'text/plain' }
+    )
   }
 
-  if (file.type === "application/pdf") {
+  if (file.type === 'application/pdf') {
     const pdfContent = `%PDF-1.4
 1 0 obj
 << /Type /Catalog /Pages 2 0 R >>
@@ -182,18 +190,23 @@ trailer
 startxref
 365
 %%EOF`
-    return new Blob([pdfContent], { type: "application/pdf" })
+    return new Blob([pdfContent], { type: 'application/pdf' })
   }
 
-  return new Blob([`File: ${file.name}\nSize: ${file.size} bytes\nType: ${file.type}\nLast Modified: ${file.lastModified.toISOString()}\n\nThis is a mock file content.`], { type: "text/plain" })
+  return new Blob(
+    [
+      `File: ${file.name}\nSize: ${file.size} bytes\nType: ${file.type}\nLast Modified: ${file.lastModified.toISOString()}\n\nThis is a mock file content.`,
+    ],
+    { type: 'text/plain' }
+  )
 }
 
 const handleZipDownload = async (files: FileItem[]): Promise<void> => {
   try {
     const selectedFiles = files.filter((file) => file.selected)
-    
+
     if (selectedFiles.length === 0) {
-      alert("ダウンロードするファイルを選択してください。")
+      alert('ダウンロードするファイルを選択してください。')
       return
     }
 
@@ -204,16 +217,16 @@ const handleZipDownload = async (files: FileItem[]): Promise<void> => {
       zip.file(file.name, content)
     }
 
-    const blob = await zip.generateAsync({ type: "blob" })
+    const blob = await zip.generateAsync({ type: 'blob' })
 
     const timestamp = new Date()
       .toISOString()
-      .replace(/[:\-T]/g, "")
+      .replace(/[:\-T]/g, '')
       .slice(0, 14)
     const fileName = `files_${timestamp}.zip`
 
     const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
+    const link = document.createElement('a')
     link.href = url
     link.download = fileName
     document.body.appendChild(link)
@@ -221,28 +234,31 @@ const handleZipDownload = async (files: FileItem[]): Promise<void> => {
     document.body.removeChild(link)
 
     setTimeout(() => URL.revokeObjectURL(url), 100)
-  } catch (error) {
-    console.error("ZIP生成エラー:", error)
-    alert("ZIPファイルの生成に失敗しました。")
+  } catch (_error) {
+    alert('ZIPファイルの生成に失敗しました。')
   }
 }
 
 export default function FileManager() {
   const [files, setFiles] = useState<FileItem[]>(sampleFiles)
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-  const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "manual">("name")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size' | 'manual'>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [draggedFile, setDraggedFile] = useState<string | null>(null)
-  const [renamePattern, setRenamePattern] = useState<"sequential" | "date" | "prefix" | "suffix">("sequential")
-  const [renameValue, setRenameValue] = useState("")
+  const [renamePattern, setRenamePattern] = useState<'sequential' | 'date' | 'prefix' | 'suffix'>(
+    'sequential'
+  )
+  const [renameValue, setRenameValue] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const selectedFiles = files.filter((file) => file.selected)
   const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0)
 
   const handleFileSelect = (fileId: string) => {
-    setFiles(files.map((file) => (file.id === fileId ? { ...file, selected: !file.selected } : file)))
+    setFiles(
+      files.map((file) => (file.id === fileId ? { ...file, selected: !file.selected } : file))
+    )
   }
 
   const handleSelectAll = () => {
@@ -263,7 +279,7 @@ export default function FileManager() {
       type: file.type,
       lastModified: new Date(file.lastModified),
       selected: false,
-      preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }))
     setFiles([...files, ...newFiles])
   }
@@ -296,21 +312,22 @@ export default function FileManager() {
       if (!file.selected) return file
 
       let newName = file.name
-      const extension = file.name.split(".").pop()
-      const baseName = file.name.replace(`.${extension}`, "")
+      const extension = file.name.split('.').pop()
+      const baseName = file.name.replace(`.${extension}`, '')
 
       switch (renamePattern) {
-        case "sequential":
-          newName = `${renameValue || "file"}_${String(index + 1).padStart(3, "0")}.${extension}`
+        case 'sequential':
+          newName = `${renameValue || 'file'}_${String(index + 1).padStart(3, '0')}.${extension}`
           break
-        case "date":
-          const date = new Date().toISOString().split("T")[0]
+        case 'date': {
+          const date = new Date().toISOString().split('T')[0]
           newName = `${date}_${baseName}.${extension}`
           break
-        case "prefix":
+        }
+        case 'prefix':
           newName = `${renameValue}${baseName}.${extension}`
           break
-        case "suffix":
+        case 'suffix':
           newName = `${baseName}${renameValue}.${extension}`
           break
       }
@@ -319,31 +336,31 @@ export default function FileManager() {
     })
 
     setFiles(newFiles)
-    setRenameValue("")
+    setRenameValue('')
   }
 
   const toggleSortOrder = () => {
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
   }
 
   const sortedFiles = [...files].sort((a, b) => {
     let result = 0
-    
+
     switch (sortBy) {
-      case "name":
+      case 'name':
         result = a.name.localeCompare(b.name)
         break
-      case "date":
+      case 'date':
         result = a.lastModified.getTime() - b.lastModified.getTime()
         break
-      case "size":
+      case 'size':
         result = a.size - b.size
         break
-      case "manual":
+      case 'manual':
         return 0
     }
-    
-    return sortOrder === "asc" ? result : -result
+
+    return sortOrder === 'asc' ? result : -result
   })
 
   return (
@@ -376,16 +393,16 @@ export default function FileManager() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setViewMode("grid")}
+                onClick={() => setViewMode('grid')}
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === "list" ? "default" : "outline"}
+                variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setViewMode("list")}
+                onClick={() => setViewMode('list')}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -403,16 +420,16 @@ export default function FileManager() {
                   <SelectItem value="manual">手動</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 onClick={toggleSortOrder}
-                disabled={sortBy === "manual"}
+                disabled={sortBy === 'manual'}
                 className="p-2"
-                title={sortOrder === "asc" ? "昇順" : "降順"}
+                title={sortOrder === 'asc' ? '昇順' : '降順'}
               >
-                {sortOrder === "asc" ? (
+                {sortOrder === 'asc' ? (
                   <ArrowUp className="h-4 w-4" />
                 ) : (
                   <ArrowDown className="h-4 w-4" />
@@ -428,7 +445,9 @@ export default function FileManager() {
                 checked={files.length > 0 && files.every((file) => file.selected)}
                 onCheckedChange={handleSelectAll}
               />
-              <Label htmlFor="select-all" className="text-sm cursor-pointer">全て選択</Label>
+              <Label htmlFor="select-all" className="text-sm cursor-pointer">
+                全て選択
+              </Label>
             </div>
             <Button
               variant="outline"
@@ -455,7 +474,13 @@ export default function FileManager() {
       <div className="flex">
         {/* Main Content */}
         <main className="flex-1 p-6">
-          <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileUpload}
+          />
 
           {files.length === 0 ? (
             <div
@@ -470,7 +495,7 @@ export default function FileManager() {
                   type: file.type,
                   lastModified: new Date(file.lastModified),
                   selected: false,
-                  preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+                  preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
                 }))
                 setFiles(newFiles)
               }}
@@ -478,9 +503,11 @@ export default function FileManager() {
             >
               <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-lg text-muted-foreground">ここにファイルをドラッグ&ドロップ</p>
-              <p className="text-sm text-muted-foreground mt-2">または「ファイルをアップロード」ボタンをクリック</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                または「ファイルをアップロード」ボタンをクリック
+              </p>
             </div>
-          ) : viewMode === "grid" ? (
+          ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {sortedFiles.map((file) => {
                 const IconComponent = getFileIcon(file.type)
@@ -488,25 +515,30 @@ export default function FileManager() {
                   <Card
                     key={file.id}
                     className={cn(
-                      "group cursor-pointer transition-all hover:shadow-md",
-                      file.selected && "ring-2 ring-primary",
-                      draggedFile === file.id && "opacity-50",
+                      'group cursor-pointer transition-all hover:shadow-md',
+                      file.selected && 'ring-2 ring-primary',
+                      draggedFile === file.id && 'opacity-50'
                     )}
-                    draggable={sortBy === "manual"}
+                    draggable={sortBy === 'manual'}
                     onDragStart={() => handleDragStart(file.id)}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, file.id)}
                   >
                     <CardContent className="p-3">
                       <div className="flex items-start justify-between mb-2">
-                        <Checkbox checked={file.selected} onCheckedChange={() => handleFileSelect(file.id)} />
-                        {sortBy === "manual" && <GripVertical className="h-4 w-4 text-muted-foreground" />}
+                        <Checkbox
+                          checked={file.selected}
+                          onCheckedChange={() => handleFileSelect(file.id)}
+                        />
+                        {sortBy === 'manual' && (
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        )}
                       </div>
 
                       <div className="aspect-square mb-3 flex items-center justify-center bg-muted rounded-md overflow-hidden">
                         {file.preview ? (
                           <img
-                            src={file.preview || "/placeholder.svg"}
+                            src={file.preview || '/placeholder.svg'}
                             alt={file.name}
                             className="w-full h-full object-cover"
                           />
@@ -542,22 +574,25 @@ export default function FileManager() {
                   <div
                     key={file.id}
                     className={cn(
-                      "grid grid-cols-12 gap-4 p-3 border-t hover:bg-muted/50 transition-colors",
-                      file.selected && "bg-primary/10",
-                      draggedFile === file.id && "opacity-50",
+                      'grid grid-cols-12 gap-4 p-3 border-t hover:bg-muted/50 transition-colors',
+                      file.selected && 'bg-primary/10',
+                      draggedFile === file.id && 'opacity-50'
                     )}
-                    draggable={sortBy === "manual"}
+                    draggable={sortBy === 'manual'}
                     onDragStart={() => handleDragStart(file.id)}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, file.id)}
                   >
                     <div className="col-span-1 flex items-center">
-                      <Checkbox checked={file.selected} onCheckedChange={() => handleFileSelect(file.id)} />
+                      <Checkbox
+                        checked={file.selected}
+                        onCheckedChange={() => handleFileSelect(file.id)}
+                      />
                     </div>
                     <div className="col-span-1 flex items-center">
                       {file.preview ? (
                         <img
-                          src={file.preview || "/placeholder.svg"}
+                          src={file.preview || '/placeholder.svg'}
                           alt={file.name}
                           className="w-8 h-8 object-cover rounded"
                         />
@@ -577,7 +612,9 @@ export default function FileManager() {
                       {formatDateTime(file.lastModified)}
                     </div>
                     <div className="col-span-1 flex items-center">
-                      {sortBy === "manual" && <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />}
+                      {sortBy === 'manual' && (
+                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                      )}
                     </div>
                   </div>
                 )
@@ -599,7 +636,10 @@ export default function FileManager() {
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium">リネームパターン</Label>
-                <Select value={renamePattern} onValueChange={(value: any) => setRenamePattern(value)}>
+                <Select
+                  value={renamePattern}
+                  onValueChange={(value: any) => setRenamePattern(value)}
+                >
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
@@ -612,19 +652,19 @@ export default function FileManager() {
                 </Select>
               </div>
 
-              {renamePattern !== "date" && (
+              {renamePattern !== 'date' && (
                 <div>
                   <Label className="text-sm font-medium">
-                    {renamePattern === "sequential"
-                      ? "ベース名"
-                      : renamePattern === "prefix"
-                        ? "プレフィックス"
-                        : "サフィックス"}
+                    {renamePattern === 'sequential'
+                      ? 'ベース名'
+                      : renamePattern === 'prefix'
+                        ? 'プレフィックス'
+                        : 'サフィックス'}
                   </Label>
                   <Input
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    placeholder={renamePattern === "sequential" ? "file" : "追加テキスト"}
+                    placeholder={renamePattern === 'sequential' ? 'file' : '追加テキスト'}
                     className="mt-2"
                   />
                 </div>
@@ -634,22 +674,23 @@ export default function FileManager() {
                 <Label className="text-sm font-medium mb-2 block">プレビュー</Label>
                 <div className="bg-muted p-3 rounded-md text-sm">
                   {selectedFiles.slice(0, 3).map((file, index) => {
-                    const extension = file.name.split(".").pop()
-                    const baseName = file.name.replace(`.${extension}`, "")
+                    const extension = file.name.split('.').pop()
+                    const baseName = file.name.replace(`.${extension}`, '')
                     let preview = file.name
 
                     switch (renamePattern) {
-                      case "sequential":
-                        preview = `${renameValue || "file"}_${String(index + 1).padStart(3, "0")}.${extension}`
+                      case 'sequential':
+                        preview = `${renameValue || 'file'}_${String(index + 1).padStart(3, '0')}.${extension}`
                         break
-                      case "date":
-                        const date = new Date().toISOString().split("T")[0]
+                      case 'date': {
+                        const date = new Date().toISOString().split('T')[0]
                         preview = `${date}_${baseName}.${extension}`
                         break
-                      case "prefix":
+                      }
+                      case 'prefix':
                         preview = `${renameValue}${baseName}.${extension}`
                         break
-                      case "suffix":
+                      case 'suffix':
                         preview = `${baseName}${renameValue}.${extension}`
                         break
                     }
@@ -661,7 +702,9 @@ export default function FileManager() {
                     )
                   })}
                   {selectedFiles.length > 3 && (
-                    <div className="text-muted-foreground">...他 {selectedFiles.length - 3} ファイル</div>
+                    <div className="text-muted-foreground">
+                      ...他 {selectedFiles.length - 3} ファイル
+                    </div>
                   )}
                 </div>
               </div>
@@ -691,7 +734,9 @@ export default function FileManager() {
                   </div>
                   <div>
                     <Label className="text-sm text-muted-foreground">更新日時</Label>
-                    <p className="text-sm font-medium">{formatDateTime(selectedFiles[0].lastModified)}</p>
+                    <p className="text-sm font-medium">
+                      {formatDateTime(selectedFiles[0].lastModified)}
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -713,7 +758,9 @@ export default function FileManager() {
       {/* Footer Status Bar */}
       <footer className="border-t bg-card px-6 py-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>{selectedFiles.length}個選択中 ({formatFileSize(totalSize)})</span>
+          <span>
+            {selectedFiles.length}個選択中 ({formatFileSize(totalSize)})
+          </span>
           <span>全{files.length}ファイル</span>
         </div>
       </footer>
