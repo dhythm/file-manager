@@ -98,8 +98,21 @@ const getFileIcon = (type: string) => {
 
 import JSZip from "jszip"
 
-const generateMockFileContent = (file: FileItem): Blob => {
+const generateMockFileContent = async (file: FileItem): Promise<Blob> => {
   if (file.type.startsWith("image/")) {
+    // 実際の画像ファイルが存在する場合は、それを使用
+    if (file.preview) {
+      try {
+        const response = await fetch(file.preview)
+        if (response.ok) {
+          return await response.blob()
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch preview image for ${file.name}, using fallback`, error)
+      }
+    }
+    
+    // フォールバック: Canvas で簡易画像を生成
     const canvas = document.createElement("canvas")
     canvas.width = 200
     canvas.height = 200
@@ -116,7 +129,7 @@ const generateMockFileContent = (file: FileItem): Blob => {
       canvas.toBlob((blob) => {
         resolve(blob || new Blob())
       }, file.type)
-    }) as unknown as Blob
+    })
   }
 
   if (file.type === "text/plain") {
@@ -174,14 +187,8 @@ const handleZipDownload = async (files: FileItem[]): Promise<void> => {
     const zip = new JSZip()
 
     for (const file of selectedFiles) {
-      const content = generateMockFileContent(file)
-      
-      if (content instanceof Promise) {
-        const blob = await content
-        zip.file(file.name, blob)
-      } else {
-        zip.file(file.name, content)
-      }
+      const content = await generateMockFileContent(file)
+      zip.file(file.name, content)
     }
 
     const blob = await zip.generateAsync({ type: "blob" })
