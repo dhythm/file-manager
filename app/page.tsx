@@ -23,6 +23,8 @@ import {
   File,
   X,
   GripVertical,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -229,6 +231,7 @@ export default function FileManager() {
   const [files, setFiles] = useState<FileItem[]>(sampleFiles)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "manual">("name")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [draggedFile, setDraggedFile] = useState<string | null>(null)
   const [renamePattern, setRenamePattern] = useState<"sequential" | "date" | "prefix" | "suffix">("sequential")
@@ -319,18 +322,28 @@ export default function FileManager() {
     setRenameValue("")
   }
 
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+  }
+
   const sortedFiles = [...files].sort((a, b) => {
+    let result = 0
+    
     switch (sortBy) {
       case "name":
-        return a.name.localeCompare(b.name)
+        result = a.name.localeCompare(b.name)
+        break
       case "date":
-        return b.lastModified.getTime() - a.lastModified.getTime()
+        result = a.lastModified.getTime() - b.lastModified.getTime()
+        break
       case "size":
-        return b.size - a.size
+        result = a.size - b.size
+        break
       case "manual":
-      default:
         return 0
     }
+    
+    return sortOrder === "asc" ? result : -result
   })
 
   return (
@@ -378,17 +391,34 @@ export default function FileManager() {
               </Button>
             </div>
 
-            <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">名前順</SelectItem>
-                <SelectItem value="date">日付順</SelectItem>
-                <SelectItem value="size">サイズ順</SelectItem>
-                <SelectItem value="manual">手動</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">名前順</SelectItem>
+                  <SelectItem value="date">日付順</SelectItem>
+                  <SelectItem value="size">サイズ順</SelectItem>
+                  <SelectItem value="manual">手動</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSortOrder}
+                disabled={sortBy === "manual"}
+                className="p-2"
+                title={sortOrder === "asc" ? "昇順" : "降順"}
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp className="h-4 w-4" />
+                ) : (
+                  <ArrowDown className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -665,28 +695,25 @@ export default function FileManager() {
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  {selectedFiles.length === 0
-                    ? "ファイルを選択してください"
-                    : `${selectedFiles.length}個のファイルを選択中`}
-                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{selectedFiles.length}個のファイルを選択中</Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm text-muted-foreground">合計サイズ</Label>
+                    <p className="text-sm font-medium">{formatFileSize(totalSize)}</p>
+                  </div>
+                </div>
               )}
             </div>
           </aside>
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="border-t bg-card px-6 py-3">
+      {/* Footer Status Bar */}
+      <footer className="border-t bg-card px-6 py-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            {selectedFiles.length > 0 && (
-              <>
-                <Badge variant="secondary">{selectedFiles.length}個のファイルを選択中</Badge>
-                <span>合計サイズ: {formatFileSize(totalSize)}</span>
-              </>
-            )}
-          </div>
+          <span>{selectedFiles.length}個選択中 ({formatFileSize(totalSize)})</span>
           <span>全{files.length}ファイル</span>
         </div>
       </footer>
