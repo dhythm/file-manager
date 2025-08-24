@@ -146,6 +146,18 @@ Claude を起動して、以下のコマンドを実行。
 /mcp__serena__initial_instructions
 ```
 
+### 3. CLAUDE.md の作成
+
+```sh
+/init in Japanese
+```
+
+### 4. linter/formatter の導入
+
+### 5. Unit testing の導入
+
+
+
 ## 機能開発
 
 Claude Code に指示を出して機能を開発する。
@@ -225,6 +237,7 @@ Phase.1-4 の計画に従い、実装する。
 
 1. 実装を依頼するときは「Plan mode」で計画を立てさせてから実行する
 2. 作業が終わると、`/clear` でセッションをリセットする
+3. 定期的に `/init` で `CLAUDE.md` を更新する
 
 ## アプリケーションの実行
 
