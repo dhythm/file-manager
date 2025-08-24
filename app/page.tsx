@@ -246,10 +246,13 @@ export default function FileManager() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [draggedFile, setDraggedFile] = useState<string | null>(null)
-  const [renamePattern, setRenamePattern] = useState<'sequential' | 'date' | 'prefix' | 'suffix'>(
-    'sequential'
-  )
+  
+  // リネーム設定の状態管理
+  const [renamePattern, setRenamePattern] = useState<'sequential' | 'date' | 'prefix' | 'suffix'>('sequential')
+  const [digitCount, setDigitCount] = useState(3)
+  const [separator, setSeparator] = useState('_')
   const [renameValue, setRenameValue] = useState('')
+  
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const selectedFiles = files.filter((file) => file.selected)
@@ -308,27 +311,37 @@ export default function FileManager() {
   }
 
   const applyRename = () => {
-    const newFiles = files.map((file, index) => {
+    let sequentialCounter = 1
+    const newFiles = files.map((file) => {
       if (!file.selected) return file
 
-      let newName = file.name
       const extension = file.name.split('.').pop()
       const baseName = file.name.replace(`.${extension}`, '')
-
+      
+      let newName = ''
+      
       switch (renamePattern) {
         case 'sequential':
-          newName = `${renameValue || 'file'}_${String(index + 1).padStart(3, '0')}.${extension}`
+          // 連番のみ（プレフィックスなし）
+          newName = `${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
+          sequentialCounter++
           break
         case 'date': {
+          // 日付 + 区切り文字 + 連番
           const date = new Date().toISOString().split('T')[0]
-          newName = `${date}_${baseName}.${extension}`
+          newName = `${date}${separator}${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
+          sequentialCounter++
           break
         }
         case 'prefix':
-          newName = `${renameValue}${baseName}.${extension}`
+          // プレフィックス + 区切り文字 + 連番
+          newName = `${renameValue || 'prefix'}${separator}${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
+          sequentialCounter++
           break
         case 'suffix':
-          newName = `${baseName}${renameValue}.${extension}`
+          // 連番 + 区切り文字 + サフィックス
+          newName = `${String(sequentialCounter).padStart(digitCount, '0')}${separator}${renameValue || 'suffix'}.${extension}`
+          sequentialCounter++
           break
       }
 
@@ -644,30 +657,58 @@ export default function FileManager() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sequential">連番</SelectItem>
-                    <SelectItem value="date">日付追加</SelectItem>
+                    <SelectItem value="sequential">連番のみ</SelectItem>
+                    <SelectItem value="date">日付</SelectItem>
                     <SelectItem value="prefix">プレフィックス</SelectItem>
                     <SelectItem value="suffix">サフィックス</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {renamePattern !== 'date' && (
-                <div>
-                  <Label className="text-sm font-medium">
-                    {renamePattern === 'sequential'
-                      ? 'ベース名'
-                      : renamePattern === 'prefix'
-                        ? 'プレフィックス'
-                        : 'サフィックス'}
-                  </Label>
-                  <Input
-                    value={renameValue}
-                    onChange={(e) => setRenameValue(e.target.value)}
-                    placeholder={renamePattern === 'sequential' ? 'file' : '追加テキスト'}
-                    className="mt-2"
-                  />
-                </div>
+              <div>
+                <Label className="text-sm font-medium">数字の桁数</Label>
+                <Select
+                  value={String(digitCount)}
+                  onValueChange={(value) => setDigitCount(Number(value))}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1桁</SelectItem>
+                    <SelectItem value="2">2桁</SelectItem>
+                    <SelectItem value="3">3桁</SelectItem>
+                    <SelectItem value="4">4桁</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {renamePattern !== 'sequential' && (
+                <>
+                  <div>
+                    <Label className="text-sm font-medium">区切り文字</Label>
+                    <Input
+                      value={separator}
+                      onChange={(e) => setSeparator(e.target.value)}
+                      placeholder="_"
+                      className="mt-2"
+                      maxLength={3}
+                    />
+                  </div>
+                  {(renamePattern === 'prefix' || renamePattern === 'suffix') && (
+                    <div>
+                      <Label className="text-sm font-medium">
+                        {renamePattern === 'prefix' ? 'プレフィックス' : 'サフィックス'}
+                      </Label>
+                      <Input
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        placeholder="追加テキスト"
+                        className="mt-2"
+                      />
+                    </div>
+                  )}
+                </>
               )}
 
               <div>
@@ -675,23 +716,27 @@ export default function FileManager() {
                 <div className="bg-muted p-3 rounded-md text-sm">
                   {selectedFiles.slice(0, 3).map((file, index) => {
                     const extension = file.name.split('.').pop()
-                    const baseName = file.name.replace(`.${extension}`, '')
-                    let preview = file.name
-
+                    let preview = ''
+                    let sequentialCounter = index + 1
+                    
                     switch (renamePattern) {
                       case 'sequential':
-                        preview = `${renameValue || 'file'}_${String(index + 1).padStart(3, '0')}.${extension}`
+                        // 連番のみ（プレフィックスなし）
+                        preview = `${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
                         break
                       case 'date': {
+                        // 日付 + 区切り文字 + 連番
                         const date = new Date().toISOString().split('T')[0]
-                        preview = `${date}_${baseName}.${extension}`
+                        preview = `${date}${separator}${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
                         break
                       }
                       case 'prefix':
-                        preview = `${renameValue}${baseName}.${extension}`
+                        // プレフィックス + 区切り文字 + 連番
+                        preview = `${renameValue || 'prefix'}${separator}${String(sequentialCounter).padStart(digitCount, '0')}.${extension}`
                         break
                       case 'suffix':
-                        preview = `${baseName}${renameValue}.${extension}`
+                        // 連番 + 区切り文字 + サフィックス
+                        preview = `${String(sequentialCounter).padStart(digitCount, '0')}${separator}${renameValue || 'suffix'}.${extension}`
                         break
                     }
 
